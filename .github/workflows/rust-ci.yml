@@ -1,0 +1,59 @@
+# GitHub Actions Workflow for Rust CI/CD
+# This workflow automates testing, linting, formatting checks, and code coverage for a Rust project.
+
+name: Rust CI
+
+on:
+  push:
+    branches: [main]  # Runs on every push to the 'main' branch
+  pull_request:
+    branches: [main]  # Runs on pull requests targeting 'main'
+
+jobs:
+  build:
+    name: Run Tests & Lints  # Job to test and lint the Rust code
+    runs-on: ubuntu-latest  # Specifies the runner environment
+
+    steps:
+      - name: Checkout Repository  # Clones the repository
+        uses: actions/checkout@v3
+      
+      - name: Install Rust  # Sets up the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache Cargo Dependencies  # Caches dependencies to speed up builds
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Run Tests  # Executes Rust unit tests
+        run: cargo test --verbose
+      
+      - name: Run Linter (Clippy)  # Ensures code follows best practices
+        run: cargo clippy -- -D warnings
+      
+      - name: Check Formatting  # Verifies proper code formatting
+        run: cargo fmt -- --check
+
+  coverage:
+    name: Code Coverage  # Job to generate code coverage report
+    runs-on: ubuntu-latest  # Uses the same environment as the build job
+    needs: build  # Ensures tests pass before running coverage
+
+    steps:
+      - name: Checkout Repository  # Clones the repository
+        uses: actions/checkout@v3
+      
+      - name: Install Rust  # Sets up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install grcov  # Installs grcov for coverage analysis
+        run: cargo install grcov
+      
+      - name: Run Tests with Coverage  # Runs tests with coverage instrumentation
+        run: |
+          CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' \
+          LLVM_PROFILE_FILE='profile-%p-%m.profraw' cargo test
+      
+      - name: Generate Coverage Report  # Creates an LCOV report
+        run: |
+          grcov . --binary-path ./target/debug/deps/ \
+            -s . -t lcov --ignore-not-existing \
