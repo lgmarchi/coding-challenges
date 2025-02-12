@@ -10,5 +10,9 @@ edition = "2021"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [[bench]]
-name = "my_benchmark"
+name = "value_not_counting_between_threads_benchmark"
+harness = false
+
+[[bench]]
+name = "two_sum_benchmark"
 harness = false
