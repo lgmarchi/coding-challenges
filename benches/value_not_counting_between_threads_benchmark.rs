@@ -1,7 +1,8 @@
 
 extern crate coding_challenges;
 
-use coding_challenges::value_not_counting_between_threads::{arc_atomic_usize_solution, arc_mutex_solution, arc_rwlock_solution};
+use coding_challenges::value_not_counting_between_threads::{arc_atomic_usize_solution, arc_mutex_solution,
+     arc_rwlock_solution, crossbeam_channels_solution, standard_channels_solution};
 use criterion::{criterion_group, criterion_main, Criterion};
 
 const SAMPLE_SIZE: usize = 10000;
@@ -34,5 +35,24 @@ fn benchmark_rwlock(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, benchmark_arc_mutex, benchmark_atomic_usize, benchmark_rwlock);
+fn benchmark_standard_channels(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Channels Benchmark");
+    group.sample_size(SAMPLE_SIZE); 
+    group.bench_function("Standard Channels", |b| {
+        b.iter(|| standard_channels_solution());
+    });
+    group.finish();
+}
+
+fn benchmark_crossbeam_channels(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Channels Benchmark");
+    group.sample_size(SAMPLE_SIZE); 
+    group.bench_function("Crossbeam Channels", |b| {
+        b.iter(|| crossbeam_channels_solution());
+    });
+    group.finish();
+}
+
+criterion_group!(benches, benchmark_arc_mutex, benchmark_atomic_usize, 
+    benchmark_rwlock, benchmark_standard_channels, benchmark_crossbeam_channels);
 criterion_main!(benches);

@@ -1,4 +1,4 @@
-use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex, RwLock}, thread};
+use std::{sync::{atomic::{AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread};
 
 pub fn arc_mutex_solution() -> usize {
     let counter = Arc::new(Mutex::new(0));
@@ -71,6 +71,76 @@ pub fn arc_rwlock_solution() -> usize {
     final_counter_value
 }
 
+pub fn standard_channels_solution() -> usize {
+    let mut counter = 0;
+    let (tx, rx): (Sender<i32>, Receiver<i32>) = mpsc::channel();
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let tx_clone = tx.clone();
+        let mut thread_counter = 0;
+        let handle = thread::spawn(move || {
+            for _ in 0..100 {
+                thread_counter += 1;
+              
+            }
+            tx_clone.send(thread_counter).unwrap();
+        });
+        handles.push(handle);
+    }
+    // Important to drop tx to let rx know when to stop
+    drop(tx);
+
+    // For multiple threads
+    for received in rx {
+        counter += received;
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let final_counter_value = counter;
+    // println!("Final counter value: {}", counter);
+    final_counter_value as usize
+}
+
+pub fn crossbeam_channels_solution() -> usize {
+    let mut counter = 0;
+    let (tx, rx) = crossbeam::channel::unbounded();
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let tx_clone = tx.clone();
+        // Using mutable counter with sender will cause data race condition
+        // blocking the app
+        let mut thread_counter = 0;
+        let handle = thread::spawn(move || {
+            for _ in 0..100 {
+                thread_counter += 1;
+              
+            }
+            tx_clone.send(thread_counter).unwrap();
+        });
+        handles.push(handle);
+    }
+    // Important to drop tx to let rx know when to stop
+    drop(tx);
+
+    // For multiple threads
+    for received in rx {
+        counter += received;
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let final_counter_value = counter;
+    // println!("Final counter value: {}", counter);
+    final_counter_value as usize
+}
+
 
 #[cfg(test)]
 mod test {
@@ -81,5 +151,7 @@ mod test {
         assert_eq!(arc_mutex_solution(), 1000);
         assert_eq!(arc_atomic_usize_solution(), 1000);
         assert_eq!(arc_rwlock_solution(), 1000);
+        assert_eq!(standard_channels_solution(), 1000);
+        assert_eq!(crossbeam_channels_solution(), 1000);
     }
 }
