@@ -50,7 +50,7 @@ struct ChatMessage<T> {
 
 impl ChatMessage<DigitalContent> {
     fn consume_entertainment(&self) {
-        println!("Watching the AudioFile: {:?}", self.content)
+        println!("Watching the {:?}", self.content)
     }
 }
 
