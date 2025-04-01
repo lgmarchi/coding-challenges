@@ -42,14 +42,11 @@ impl<'a> Iterator for Splitter<'a> {
             Some(index) => {
                 let result = &self.input[self.start..self.start + index];
                 self.start += index + 1;
-                println!("Result: {:?}", result);
-
                 Some(result)
             }
             None => {
                 let result = &self.input[self.start..];
                 self.start = self.input.len();
-                println!("Result: {:?}", result);
                 Some(result)
             }
         }
