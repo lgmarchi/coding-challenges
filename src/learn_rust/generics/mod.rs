@@ -26,7 +26,7 @@ string slice.
 
 Create another ChatMessage with `content` set to a String.
 
-Create another ChatMessage with `content' set to a
+Create another ChatMessage with `content` set to a
 DigitalContent variant.
 
 Invoke the `consume_entertainment` method on the
