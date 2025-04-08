@@ -1,55 +1,41 @@
-use chrono::Utc;
-
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
 async fn main() {
-    println!("Iniciando...");
-    let mut resultado = "".to_string();
+    println!("Starting...");
+    let result;
 
-    let timeout_duration = Duration::from_secs(1);
-    let timeout2 = sleep(timeout_duration);
+    let timeout_duration = Duration::from_secs(3);
+    let timeout = sleep(timeout_duration);
 
-    tokio::pin!(timeout2);
+    tokio::pin!(timeout);
 
     tokio::select! {
-        res = tarefa_rapida() => {
-            println!("Tarefa rápida terminou primeiro!");
-            resultado = res;
+        res = fast_task() => {
+            println!("Fast task finished first!");
+            result = res;
         }
-        res = tarefa_lenta() => {
-            println!("Tarefa lenta terminou primeiro!");
-            resultado = res;
+        res = slow_task() => {
+            println!("Slow task finished first!");
+            result = res;
         }
-        _ = &mut timeout2 => {
-            println!("Timeout atingido!");
-            resultado = "timeout".to_string();
+        _ = &mut timeout => {
+            println!("Timeout reached!");
+            result = "timeout".to_string();
         }
     }
 
-    println!("{resultado:?}");
+    println!("{result:?}");
 }
 
-async fn tarefa_rapida() -> String {
-    println!("Tarefa rápida começando...");
+async fn fast_task() -> String {
+    println!("Fast task starting...");
     sleep(Duration::from_secs(2)).await;
-    "Tarefa rápida finalizada.".to_string()
+    "Fast task finished.".to_string()
 }
 
-async fn tarefa_lenta() -> String {
-    println!("Tarefa lenta começando...");
+async fn slow_task() -> String {
+    println!("Slow task starting...");
     sleep(Duration::from_secs(5)).await;
-    "Tarefa lenta finalizada.".to_string()
+    "Slow task finished.".to_string()
 }
-
-// fn main() {
-//     println!("Initial Time: {}", Utc::now());
-
-//     for i in 0..10_000 {
-//         std::thread::spawn(move || {
-//             std::thread::sleep(std::time::Duration::from_secs(1));
-//             println!("Thread {} terminou", i);
-//         });
-//     }
-//     println!("Final Time: {}", Utc::now());
-// }
